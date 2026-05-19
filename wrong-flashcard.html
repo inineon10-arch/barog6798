@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5f0eb">
 <meta name="referrer" content="no-referrer">
-<title>오답 단어장 – 박하경</title>
+<title>오답 단어장</title>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -105,11 +105,11 @@
 <div id="app">
   <div class="header">
     <div class="header-left">
-      <div class="name">바로그영어 · 박하경</div>
-      <div class="title">오답 단어장</div>
+      <div class="name" id="hdr-name">바로그영어</div>
+      <div class="title" id="hdr-title">오답 단어장</div>
     </div>
     <div class="header-right">
-      <div class="index-display"><span id="cur">1</span><span> / <span id="tot">20</span></span></div>
+      <div class="index-display"><span id="cur">1</span><span> / <span id="tot">8</span></span></div>
       <div style="display:flex;align-items:center;gap:8px;">
         <button class="random-btn" id="btn-random" type="button">🔀 랜덤</button>
         <div class="mode-chip">
@@ -125,6 +125,7 @@
     <div class="swipe-indicator ind-next" id="ind-next">다음 →</div>
     <div class="swipe-indicator ind-up" id="ind-up">↑ 뒤집기</div>
     <div class="swipe-indicator ind-down" id="ind-down">↓ 뒤집기</div>
+    <div id="status-msg" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;padding:20px;font-size:0.95rem;color:var(--text2);max-width:300px;line-height:1.6;"></div>
   </div>
   <div class="nav-hint">
     <div class="nav-item"><span class="nav-arrow">→</span> 이전 단어</div>
@@ -133,92 +134,27 @@
   </div>
 </div>
 <script>
-const cards = [
-  { num:8, word:'certificate', pos:'명사', type:'wrong',
-    correct:'증명서, 자격증', student:'확인하게하다',
-    tip:'동사 \'certify(증명하다)\'와 헷갈렸네요. \'certificate\'는 증명해주는 \'문서\'를 뜻하는 명사입니다.',
-    example:'To get the job, you need to show your teaching <em>certificate</em>.' },
-  { num:15, word:'simultaneous', pos:'형용사', type:'wrong',
-    correct:'동시의', student:'자극제',
-    tip:'자극제\'를 뜻하는 \'stimulant\'와 발음이 비슷해서 헷갈릴 수 있어요. \'simultaneous\'는 \'동시의\'라는 뜻입니다.',
-    example:'The two explosions were <em>simultaneous</em>, making it hard to tell which came first.' },
-  { num:20, word:'verdict', pos:'명사', type:'wrong',
-    correct:'평결, 판결', student:'수직의',
-    tip:'수직의\'를 뜻하는 \'vertical\'과 헷갈리지 않도록 주의하세요. \'verdict\'는 법정에서의 \'평결\'을 의미합니다.',
-    example:'The jury reached a guilty <em>verdict</em> after deliberating for five hours.' },
-  { num:23, word:'assimilate', pos:'동사', type:'wrong',
-    correct:'동화되다, 흡수하다', student:'비슷한',
-    tip:'비슷한(similar)\'과 어원이 같아요. \'비슷하게 만들다\', 즉 \'동화시키다\'라는 뜻으로 기억하세요.',
-    example:'It can be difficult for immigrants to <em>assimilate</em> into a new culture.' },
-  { num:28, word:'breakthrough', pos:'명사', type:'wrong',
-    correct:'돌파구, 비약적 발전', student:'돌파하다',
-    tip:'break through(돌파하다)\'는 동사구, \'breakthrough\'는 \'돌파구\'라는 명사입니다. 품사를 헷갈리지 마세요.',
-    example:'Scientists have made a major <em>breakthrough</em> in the treatment of the disease.' },
-  { num:29, word:'intersection', pos:'명사', type:'wrong',
-    correct:'교차로, 교차', student:'분야',
-    tip:'부분, 분야\'를 뜻하는 \'section\'과 헷갈리지 마세요. \'inter-\'는 \'사이\'를 뜻해 \'교차로\'를 의미합니다.',
-    example:'A serious car accident occurred at the busy <em>intersection</em> this morning.' },
-  { num:47, word:'alienate', pos:'동사', type:'wrong',
-    correct:'소외시키다, 멀어지게 하다', student:'멀리있는',
-    tip:'alien(외계인, 이방인)\'처럼 \'멀리 떨어뜨리다\', 즉 \'소외시키다\'라는 뜻의 동사입니다.',
-    example:'His arrogant comments have <em>alienated</em> many of his colleagues.' },
-  { num:48, word:'seemingly', pos:'부사', type:'wrong',
-    correct:'겉보기에는, 외견상으로', student:'비슷하게',
-    tip:'비슷하게(similarly)\'와 혼동하기 쉬워요. \'seem(~처럼 보이다)\'에서 온 부사로 \'겉보기에는\' 이란 뜻입니다.',
-    example:'The new plan is <em>seemingly</em> simple, but its implementation will be complex.' },
-  { num:49, word:'affirm', pos:'동사', type:'wrong',
-    correct:'단언하다, 확언하다', student:'허락하다',
-    tip:'허락하다(approve)\'와는 달라요. \'firm(확고한)\'하게 \'맞다\'고 \'단언하다\'라고 기억하세요.',
-    example:'The witness was asked to <em>affirm</em> that the statement he made to the police was true.' },
-  { num:2, word:'converse', pos:'동사/형용사', type:'wrong',
-    correct:'대화하다, 정반대의', student:'뒤집다',
-    tip:'reverse\'(뒤집다)와 발음이 비슷하지만, \'함께(con) 대화하다\'는 뜻으로 기억하세요.',
-    example:'She enjoyed the chance to <em>converse</em> with someone who shared her interests.' },
-  { num:4, word:'midst', pos:'명사', type:'wrong',
-    correct:'중앙, 한가운데', student:'중간의',
-    tip:'middle\'(중간의)은 형용사, \'midst\'는 \'...의 한가운데\'라는 뜻의 명사입니다. 품사를 구분하세요.',
-    example:'The country is in the <em>midst</em> of an economic crisis.' },
-  { num:12, word:'summit', pos:'명사', type:'wrong',
-    correct:'정상, 산꼭대기', student:'제출하다',
-    tip:'submit\'(제출하다)과 발음이 비슷하니 주의하세요. 산의 \'정상\'을 뜻하는 단어입니다.',
-    example:'They finally reached the <em>summit</em> of the mountain after a five-hour climb.' },
-  { num:22, word:'difficulty', pos:'명사', type:'wrong',
-    correct:'어려움, 곤란', student:'어려운',
-    tip:'difficult\'(어려운)는 형용사, \'difficulty\'는 \'어려움\'이라는 명사입니다. 품사를 구분해서 외우세요.',
-    example:'He had great <em>difficulty</em> in starting the car on the cold morning.' },
-  { num:29, word:'feat', pos:'명사', type:'wrong',
-    correct:'위업, 솜씨', student:'특징',
-    tip:'feature\'(특징)와 혼동하기 쉬워요. \'위업\'이나 \'대단한 솜씨\'라는 뜻으로 기억하세요.',
-    example:'Building the pyramids was an incredible <em>feat</em> of engineering.' },
-  { num:39, word:'torment', pos:'명사/동사', type:'wrong',
-    correct:'고통, 괴롭히다', student:'토너먼트',
-    tip:'발음이 비슷한 \'tournament\'(토너먼트)와 헷갈리지 마세요. \'고통\'이라는 전혀 다른 뜻입니다.',
-    example:'He was in a state of mental <em>torment</em> after losing his job.' },
-  { num:41, word:'mistrust', pos:'명사/동사', type:'wrong',
-    correct:'불신, 의심하다', student:'믿지 못하는',
-    tip:'mis-\'(잘못된)와 \'trust\'(믿음)가 합쳐진 단어로, \'불신\' 또는 \'의심하다\'라는 뜻입니다.',
-    example:'There is a growing <em>mistrust</em> of the government\'s official statements.' },
-  { num:44, word:'tactic', pos:'명사', type:'blank',
-    correct:'전략, 전술', student:'(무응답)',
-    tip:'전략\'이라는 뜻으로, 비슷한 단어 \'strategy\'와 함께 기억하면 좋습니다.',
-    example:'The general decided to change his <em>tactic</em> to surprise the enemy.' },
-  { num:45, word:'defect', pos:'명사', type:'wrong',
-    correct:'결함, 결점', student:'패배시키다',
-    tip:'defeat\'(패배시키다)와 발음이 비슷하니 주의하세요. 제품의 \'결함\'을 뜻하는 명사입니다.',
-    example:'The company had to recall thousands of cars due to a serious design <em>defect</em>.' },
-  { num:47, word:'implement', pos:'명사/동사', type:'wrong',
-    correct:'도구, 시행하다', student:'수단',
-    tip:'도구\'라는 뜻도 있지만, 계획 등을 \'시행하다\'라는 동사로 더 자주 쓰입니다.',
-    example:'The government will <em>implement</em> a new policy to improve public health.' },
-  { num:49, word:'pension', pos:'명사', type:'wrong',
-    correct:'연금', student:'휴양지',
-    tip:'우리가 아는 숙소 \'펜션\'과 철자는 같지만, 영어에서는 \'연금\'이라는 뜻으로 쓰입니다.',
-    example:'After retiring, he will receive a monthly <em>pension</em> from his former employer.' }
-];
+/* ============================================================
+   ★ 오답단어 시트 설정 (학생별로 이 두 줄만 변경)
+   ============================================================ */
+const STUDENT_NAME = '박하경';   // 학생 이름 (헤더에 표시)
+const SHEET_GID    = '474580381';         // scan-ocr 시트에서 이 학생 탭의 gid
+// scan-ocr 스프레드시트 published URL
+const SHEET_CSV_BASE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyO-Sx_N0LFENgIcQp-3ATAHrYOUvLCuEr2Nls8qYKYMnOTRyo5_zJY1hbyA1ONfzcf2UK7kwe3fTP/pub?output=csv';
+/* ============================================================ */
+
+// URL 파라미터에서 날짜 가져오기 (?date=2026-05-17 또는 ?start=2026-05-13&end=2026-05-16)
+const _params = new URLSearchParams(location.search);
+const _date  = _params.get('date')  || '';
+const _start = _params.get('start') || _date;
+const _end   = _params.get('end')   || _date;
+
+const cards = [];
+
 let idx=0,startFace='word',showingBack=false,isAnimating=false;
 document.getElementById('btn-meaning').addEventListener('click',()=>{if(isAnimating)return;startFace='meaning';showingBack=false;document.getElementById('btn-meaning').classList.add('active');document.getElementById('btn-word').classList.remove('active');if(idx<cards.length)renderCard(0);});
 document.getElementById('btn-word').addEventListener('click',()=>{if(isAnimating)return;startFace='word';showingBack=false;document.getElementById('btn-word').classList.add('active');document.getElementById('btn-meaning').classList.remove('active');if(idx<cards.length)renderCard(0);});
-const originalCards=[...cards];let isShuffled=false;
+let originalCards=[];let isShuffled=false;
 function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 document.getElementById('btn-random').addEventListener('click',function(){if(isAnimating)return;haptic(20);if(!isShuffled){const s=shuffleArray(cards);cards.length=0;s.forEach(c=>cards.push(c));isShuffled=true;this.classList.add('shuffled');this.textContent='🔀 랜덤ON';}else{cards.length=0;originalCards.forEach(c=>cards.push(c));isShuffled=false;this.classList.remove('shuffled');this.textContent='🔀 랜덤';}idx=0;showingBack=false;buildDots();renderCard(0);});
 let currentAudio=null;
@@ -250,7 +186,135 @@ document.addEventListener('keydown',e=>{if(isAnimating)return;if(e.key==='ArrowR
 let lte=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lte<=300)e.preventDefault();lte=n;},{passive:false});
 window.addEventListener('resize',()=>document.documentElement.style.setProperty('--app-vh',`${window.innerHeight*0.01}px`));
 document.documentElement.style.setProperty('--app-vh',`${window.innerHeight*0.01}px`);
-buildDots();initInteraction();renderCard(0);
+
+/* ============================================================
+   CSV 파싱 (쉼표·따옴표 처리)
+   ============================================================ */
+function parseCSV(text){
+  const rows=[];
+  let row=[],cur='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){
+        if(text[i+1]==='"'){cur+='"';i++;}
+        else inQ=false;
+      } else cur+=ch;
+    } else {
+      if(ch==='"') inQ=true;
+      else if(ch===','){row.push(cur);cur='';}
+      else if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur='';}
+      else if(ch==='\r'){/* skip */}
+      else cur+=ch;
+    }
+  }
+  if(cur||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+
+/* ============================================================
+   날짜 정규화 (YYYY-MM-DD)
+   ============================================================ */
+function normDate(s){
+  if(!s) return '';
+  const m=String(s).trim().match(/(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+  if(!m) return '';
+  return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+}
+
+/* ============================================================
+   상태 메시지
+   ============================================================ */
+function showStatus(html){
+  const m=document.getElementById('status-msg');
+  m.innerHTML=html;
+  m.style.display='block';
+}
+function hideStatus(){document.getElementById('status-msg').style.display='none';}
+
+/* ============================================================
+   헤더 업데이트
+   ============================================================ */
+function updateHeader(name,start,end){
+  document.getElementById('hdr-name').textContent=`바로그영어 · ${name}`;
+  let label='오답 단어장';
+  if(start){
+    const sp=start.split('-');
+    if(start===end || !end){
+      label=`${parseInt(sp[1])}월 ${parseInt(sp[2])}일 오답`;
+    } else {
+      const ep=end.split('-');
+      label=`${parseInt(sp[1])}/${parseInt(sp[2])}~${parseInt(ep[1])}/${parseInt(ep[2])} 오답`;
+    }
+  }
+  document.getElementById('hdr-title').textContent=label;
+  document.title=`오답 단어장 – ${name}`;
+}
+
+/* ============================================================
+   데이터 로드
+   ============================================================ */
+async function loadData(){
+  updateHeader(STUDENT_NAME,_start,_end);
+  if(!_start){
+    showStatus('날짜 정보가 없어요.<br><span style="font-size:0.8rem;color:var(--muted)">예: wrong-flashcard.html?date=2026-05-17</span>');
+    return;
+  }
+  showStatus('<div style="font-size:0.85rem">데이터를 불러오는 중...</div>');
+  try {
+    const url=`${SHEET_CSV_BASE}&gid=${SHEET_GID}&t=${Date.now()}`;
+    const res=await fetch(url);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text=await res.text();
+    const rows=parseCSV(text);
+
+    // 헤더 찾기 (첫 행이 "날짜"로 시작하는지)
+    let startRow=0;
+    if(rows.length && String(rows[0][0]||'').trim()==='날짜') startRow=1;
+
+    // 날짜 범위 필터링
+    for(let i=startRow;i<rows.length;i++){
+      const r=rows[i];
+      if(!r||r.length<5) continue;
+      const dateStr=normDate(r[0]);
+      if(!dateStr) continue;
+      if(dateStr<_start || dateStr>_end) continue;
+
+      const num=String(r[1]||'').trim();
+      const word=String(r[2]||'').trim();
+      const student=String(r[3]||'').trim();
+      const correct=String(r[4]||'').trim();
+      const pos=String(r[5]||'').trim();
+      const tip=String(r[6]||'').trim();
+      const example=String(r[7]||'').trim();
+
+      if(!word) continue;
+      const isBlank = student==='빈칸' || student==='' || student==='(무응답)';
+      cards.push({
+        num:num||'-',
+        word:word,
+        pos:pos||'-',
+        type:isBlank?'blank':'wrong',
+        correct:correct||'-',
+        student:isBlank?'(무응답)':student,
+        tip:tip||'-',
+        example:example||''
+      });
+    }
+
+    if(cards.length===0){
+      showStatus(`${STUDENT_NAME}의 ${_start} 오답 데이터가 없어요.<br><span style="font-size:0.8rem;color:var(--muted)">아직 채점이 안 됐거나, 만점을 받았을 수도 있어요 🎉</span>`);
+      return;
+    }
+    originalCards=[...cards];
+    hideStatus();
+    buildDots();initInteraction();renderCard(0);
+  } catch(err){
+    showStatus(`데이터를 불러오지 못했어요.<br><span style="font-size:0.8rem;color:var(--muted)">${err.message}</span>`);
+  }
+}
+
+loadData();
 </script>
 </body>
 </html>
